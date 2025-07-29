@@ -49,9 +49,10 @@ done
 default_ipv4=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K[\d.]+')
 if [ -n "$default_ipv4" ]; then
     if is_private_ipv4 "$default_ipv4"; then
-        color_yellow "🌐 默认出口 IPv4: $default_ipv4 （内网 IP）"
+        pub4=$(curl --interface "$iface" -s4 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
+        color_yellow "🌐 默认出口 IPv4 为: $pub4"
     else
-        color_yellow "🌍 默认出口 IPv4: $default_ipv4 （公网 IP）"
+        color_yellow "🌍 默认出口 IPv4: $default_ipv4"
     fi
     has_ip=1
 fi
@@ -60,9 +61,10 @@ fi
 default_ipv6=$(ip -6 route get 2606:4700:4700::1111 2>/dev/null | grep -oP 'src \K[0-9a-f:]+')
 if [ -n "$default_ipv6" ]; then
     if is_local_ipv6 "$default_ipv6"; then
-        color_yellow "🌐 默认出口 IPv6: $default_ipv6 （局域网地址）"
+        pub6=$(curl --interface "$iface" -s6 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
+        color_yellow "🌐 默认出口 IPv6: $pub6"
     else
-        color_yellow "🌍 默认出口 IPv6: $default_ipv6 （公网 IP）"
+        color_yellow "🌍 默认出口 IPv6: $default_ipv6"
     fi
     has_ip=1
 fi

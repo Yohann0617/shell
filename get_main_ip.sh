@@ -61,24 +61,18 @@ if [ -n "$default_ipv6" ]; then
 fi
 
 # ====== 如果未获取任何 IP，使用 Cloudflare fallback ======
-if [ "$has_ip" -eq 0 ]; then
-    color_red "⚠️ 本地未获取到 IP，尝试从 Cloudflare 获取公网 IP..."
+# ====== Cloudflare 公网 IP 显示（总是执行） ======
+if command -v curl >/dev/null 2>&1; then
+    color_green "\n🔍 正在通过 Cloudflare 获取公网 IP 信息..."
+    meta=$(curl -s https://speed.cloudflare.com/meta)
+    pub_ip=$(echo "$meta" | grep -oP '"clientIp":"\K[^"]+')
 
-    if command -v curl >/dev/null 2>&1; then
-        meta=$(curl -s https://speed.cloudflare.com/meta)
-        pub_ipv4=$(echo "$meta" | grep -oP '"ip":"\K[^"]+')
-        pub_ipv6=$(echo "$meta" | grep -oP '"ip6":"\K[^"]+')
-
-        if [ -n "$pub_ipv4" ]; then
-            color_yellow "☁️ 公网 IPv4: $pub_ipv4"
-        fi
-        if [ -n "$pub_ipv6" ]; then
-            color_yellow "☁️ 公网 IPv6: $pub_ipv6"
-        fi
-        if [ -z "$pub_ipv4" ] && [ -z "$pub_ipv6" ]; then
-            color_red "❌ 无法从 Cloudflare 获取公网 IP"
-        fi
-    else
-        color_red "❌ curl 未安装，无法从 Cloudflare 获取公网 IP"
+    if [ -n "$pub_ip" ]; then
+        color_yellow "☁️ 有效的公网IP地址: $pub_ip"
     fi
+    if [ -z "$pub_ip" ]; then
+        color_red "❌ 无法从 Cloudflare 获取公网 IP"
+    fi
+else
+    color_red "❌ curl 未安装，无法从 Cloudflare 获取公网 IP"
 fi

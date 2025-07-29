@@ -65,7 +65,8 @@ if command -v curl >/dev/null 2>&1; then
     color_green "\n🔍 正在通过 Cloudflare 获取公网 IP 信息..."
 
     # 如果默认 IPv4 是公网，则尝试 curl -4
-    if [ -n "$default_ipv4" ] && ! is_private_ipv4 "$default_ipv4"; then
+    if [ -n "$default_ipv4" ]; then
+    # if [ -n "$default_ipv4" ] && ! is_private_ipv4 "$default_ipv4"; then
         pub_ipv4=$(curl -s4 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
         if [ -n "$pub_ipv4" ]; then
             color_yellow "☁️ 公网 IPv4: $pub_ipv4"
@@ -75,7 +76,8 @@ if command -v curl >/dev/null 2>&1; then
     fi
 
     # 只有当默认 IPv6 是局域网地址时才请求 Cloudflare
-    if [ -n "$default_ipv6" ] && is_local_ipv6 "$default_ipv6"; then
+    if [ -n "$default_ipv6" ]; then
+    # if [ -n "$default_ipv6" ] && is_local_ipv6 "$default_ipv6"; then
         pub_ipv6=$(curl -s6 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
         if [ -n "$pub_ipv6" ]; then
             color_yellow "☁️ 公网 IPv6: $pub_ipv6"

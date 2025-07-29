@@ -76,7 +76,7 @@ if command -v curl >/dev/null 2>&1; then
     # if [ -n "$default_ipv4" ] && ! is_private_ipv4 "$default_ipv4"; then
         pub_ipv4=$(curl -s4 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
         if [ -n "$pub_ipv4" ]; then
-            color_yellow "☁️ 公网 IPv4: $pub_ipv4"
+            color_yellow "☁️ 默认公网 IPv4: $pub_ipv4"
         else
             color_red "❌ 无法通过 IPv4 获取公网地址"
         fi
@@ -87,7 +87,7 @@ if command -v curl >/dev/null 2>&1; then
     # if [ -n "$default_ipv6" ] && is_local_ipv6 "$default_ipv6"; then
         pub_ipv6=$(curl -s6 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
         if [ -n "$pub_ipv6" ]; then
-            color_yellow "☁️ 公网 IPv6: $pub_ipv6"
+            color_yellow "☁️ 默认公网 IPv6: $pub_ipv6"
         else
             color_red "❌ 无法通过 IPv6 获取公网地址"
         fi
@@ -103,7 +103,7 @@ if command -v curl >/dev/null 2>&1; then
     pub_ip=$(echo "$meta" | grep -oP '"clientIp":"\K[^"]+')
 
     if [ -n "$pub_ip" ]; then
-        color_yellow "☁️ 默认的公网IP地址: $pub_ip"
+        color_yellow "☁️ 默认出口公网IP地址: $pub_ip"
     fi
     if [ -z "$pub_ip" ]; then
         color_red "❌ 无法从 Cloudflare 获取公网 IP"

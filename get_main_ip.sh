@@ -31,7 +31,7 @@ for iface in $interfaces; do
     if [ -n "$ipv4" ]; then
         echo "✅ 接口 $iface 的 IPv4 地址: $ipv4"
         if is_private_ipv4 "$ipv4"; then
-            pub4=$(curl -s4 https://speed.cloudflare.com/meta | jq -r .clientIp)
+            pub4=$(curl -s4 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
             echo "✅ 接口 $iface 检测到内网 IPv4，公网 IPv4 为: $pub4"
         fi
     fi
@@ -39,7 +39,7 @@ for iface in $interfaces; do
     if [ -n "$ipv6" ]; then
         echo "✅ 接口 $iface 的 IPv6 地址: $ipv6"
         if is_local_ipv6 "$ipv6"; then
-            pub6=$(curl -s6 https://speed.cloudflare.com/meta | jq -r .clientIp)
+            pub6=$(curl -s6 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
             echo "✅ 接口 $iface 检测到内网 IPv6，公网 IPv6 为: $pub6"
         fi
     fi

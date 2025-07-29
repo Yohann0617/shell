@@ -29,13 +29,13 @@ done
 # ====== 判断 IPv4 是否是内网地址 ======
 function is_private_ipv4() {
     local ip=$1
-    if [[ $ip =~ ^10\. ]] || \
-       [[ $ip =~ ^192\.168\. ]] || \
-       [[ $ip =~ ^172\.(1[6-9]|2[0-9]|3[0-1])\. ]]; then
-        return 0
-    else
-        return 1
-    fi
+    [[ $ip =~ ^10\. ]] || [[ $ip =~ ^192\.168\. ]] || [[ $ip =~ ^172\.(1[6-9]|2[0-9]|3[0-1])\. ]]
+}
+
+# ====== 判断 IPv6 是否是链路本地或本地地址 ======
+function is_local_ipv6() {
+    local ip=$1
+    [[ $ip =~ ^fe80: ]] || [[ $ip =~ ^fc00: ]] || [[ $ip =~ ^fd00: ]]
 }
 
 # ====== 默认出口 IPv4 ======
@@ -52,23 +52,49 @@ fi
 # ====== 默认出口 IPv6 ======
 default_ipv6=$(ip -6 route get 2606:4700:4700::1111 2>/dev/null | grep -oP 'src \K[0-9a-f:]+')
 if [ -n "$default_ipv6" ]; then
-    if [[ $default_ipv6 == fe80::* ]]; then
-        color_yellow "🌐 默认出口 IPv6: $default_ipv6 （链路本地地址）"
+    if is_local_ipv6 "$default_ipv6"; then
+        color_yellow "🌐 默认出口 IPv6: $default_ipv6 （局域网地址）"
     else
-        color_yellow "🌍 默认出口 IPv6: $default_ipv6"
+        color_yellow "🌍 默认出口 IPv6: $default_ipv6 （公网 IP）"
     fi
     has_ip=1
+fi
+
+# ====== 通过 Cloudflare 获取公网 IP（视条件请求） ======
+if command -v curl >/dev/null 2>&1; then
+    color_green "\n🔍 正在通过 Cloudflare 获取公网 IP 信息..."
+
+    # 如果默认 IPv4 是公网，则尝试 curl -4
+    if [ -n "$default_ipv4" ] && ! is_private_ipv4 "$default_ipv4"; then
+        pub_ipv4=$(curl -s4 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
+        if [ -n "$pub_ipv4" ]; then
+            color_yellow "☁️ 公网 IPv4: $pub_ipv4"
+        else
+            color_red "❌ 无法通过 IPv4 获取公网地址"
+        fi
+    fi
+
+    # 只有当默认 IPv6 是局域网地址时才请求 Cloudflare
+    if [ -n "$default_ipv6" ] && is_local_ipv6 "$default_ipv6"; then
+        pub_ipv6=$(curl -s6 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
+        if [ -n "$pub_ipv6" ]; then
+            color_yellow "☁️ 公网 IPv6: $pub_ipv6"
+        else
+            color_red "❌ 无法通过 IPv6 获取公网地址"
+        fi
+    fi
+else
+    color_red "❌ curl 未安装，无法从 Cloudflare 获取公网 IP"
 fi
 
 # ====== 如果未获取任何 IP，使用 Cloudflare fallback ======
 # ====== Cloudflare 公网 IP 显示（总是执行） ======
 if command -v curl >/dev/null 2>&1; then
-    color_green "\n🔍 正在通过 Cloudflare 获取公网 IP 信息..."
     meta=$(curl -s https://speed.cloudflare.com/meta)
     pub_ip=$(echo "$meta" | grep -oP '"clientIp":"\K[^"]+')
 
     if [ -n "$pub_ip" ]; then
-        color_yellow "☁️ 有效的公网IP地址: $pub_ip"
+        color_yellow "☁️ 默认的公网IP地址: $pub_ip"
     fi
     if [ -z "$pub_ip" ]; then
         color_red "❌ 无法从 Cloudflare 获取公网 IP"

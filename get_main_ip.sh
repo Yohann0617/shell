@@ -50,7 +50,7 @@ default_ipv4=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K[\d.]+')
 if [ -n "$default_ipv4" ]; then
     if is_private_ipv4 "$default_ipv4"; then
         pub4=$(curl --interface "$iface" -s4 https://speed.cloudflare.com/meta | grep -oP '"clientIp":"\K[^"]+')
-        color_yellow "🌐 默认出口 IPv4 为: $pub4"
+        color_yellow "🌐 默认出口 IPv4: $pub4"
     else
         color_yellow "🌍 默认出口 IPv4: $default_ipv4"
     fi
